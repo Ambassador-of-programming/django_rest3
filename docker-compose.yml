@@ -1,0 +1,56 @@
+version: '3.7'
+
+services:
+
+  db:
+    container_name: postgres_db
+    image: postgres:12.0-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    networks:
+      - my-network
+    env_file:
+      - ./.env
+
+  web:
+    container_name: django_web
+    restart: unless-stopped
+    build:
+      context: .
+    volumes:
+      - static/:/static
+      - media/:/media
+      - ./:/app
+    entrypoint: ./wsgi-entrypoint.sh
+    ports:
+      - 8005:8005
+    networks:
+      - my-network
+    depends_on:
+      - db
+
+  # nginx:
+  #   container_name: mad_devs_nginx
+  #   restart: always
+  #   build:
+  #     context: ./docker/nginx
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "80:80"
+  #   volumes:
+  #     - ./static/:/static
+  #     - ./media/:/media
+  #   networks:
+  #     - my-network
+  #   depends_on:
+  #     - db
+  #     - web
+
+
+volumes:
+  postgres_data:
+  media:
+  static:
+
+networks:
+  my-network:
